@@ -5,7 +5,7 @@ Time Calculator assignment for [**FreeCodeCamp**][freecodecamp-url]. The section
 
 Full Documentation: [**Documentation**][documentation-link]
 
-**Live Demo**: [**REPL**][repl-link] 
+
 
 
 
