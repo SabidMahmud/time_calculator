@@ -1,74 +1,75 @@
-def add_time(start, duration, expecting_weekday = False):
-    start_hour, start_min = start.split(":")
-    start_min, suffix = start_min.split(" ")
-    days_later = 0
-
-    full_day = 24
-    half_day = 12
-
-    # end times
-    duration_hr, duration_min = duration.split(":")
-
-    # updated times
-    start_hour = int(start_hour)
-    start_min = int(start_min) 
-    duration_hr = int(duration_hr)
-    duration_min = int(duration_min)
-    
-    # days array
-    week_days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
-    
-    # total time count
-    new_hr = start_hour + duration_hr
-    new_min = start_min + duration_min
-
-    # time calculation
-    if new_min >= 60:
-        new_hr += new_min // 60
-        new_min = new_min % 60
-    
-    if duration_hr or duration_min:
-        # AM/PM selection
-        # increase day if total_hr >= 24
-        if (suffix == 'PM' and new_hr > full_day) and (new_hr % full_day) >= 1:
-            days_later += 1
-
-        if new_hr >= half_day:
-            days_later += new_hr // full_day
-
-        # adjusting the suffix
-        temp = new_hr
-        while True:
-            if temp < half_day:
-                break
-
-            if suffix == "AM":
-                suffix = "PM"
-            else:
-                suffix = "AM"
-            
-            temp -= half_day
-
-    # remaining hours and minutes
-    hours_left = new_hr % half_day
-    mins_left = new_min % 60
-        
-    # preparing the output
-    final_time = f"{hours_left}:{mins_left:02} {suffix}"
-
-    if expecting_weekday:
-        weekday = expecting_weekday.strip().lower()
-        current_day_index = (week_days.index(weekday) + days_later) % 7
-        current_day = week_days[current_day_index].capitalize()
-        final_time += f", {current_day} {get_current_weekday(days_later)}"
-
-    return final_time
-
-def get_current_weekday(n_days):
-    if n_days == 1:
+def get_days_later(days):
+    if days == 1:
         return "(next day)"
-    elif n_days > 1:
-        return f"({n_days} days later)"
+    elif days > 1:
+        return f"({days} days later)"
     return ""
 
-print(add_time("10:10 PM", "30:30", "Monday"))
+
+def add_time(start_time, end_time, day=False):
+    
+    # constants
+    HOURS_IN_ONE_DAY = 24
+    HOURS_IN_HALF_DAY = 12
+    WEEK_DAYS = [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+    ]
+
+
+    days_later = 0
+    hours, mins = start_time.split(":")
+    mins, period = mins.split(" ")
+    end_time_hrs, end_time_mins = end_time.split(":")
+
+    hours = int(hours)  # start time  hours
+    mins = int(mins)  # start time  minutes
+    end_time_hrs = int(end_time_hrs)  # end time hours
+    end_time_mins = int(end_time_mins)  # end time minutes
+    period = period.strip().lower()  # AM or PM
+
+    total_mins = mins + end_time_mins
+    total_hours = hours + end_time_hrs
+
+    if total_mins >= 60:
+        total_hours += int(total_mins / 60)
+        total_mins = int(total_mins % 60)
+
+    if end_time_hrs or end_time_mins:
+        if period == "pm" and total_hours > HOURS_IN_HALF_DAY:
+            if total_hours % HOURS_IN_ONE_DAY >= 1.0:
+                days_later += 1
+
+        if total_hours >= HOURS_IN_HALF_DAY:
+            hours_left = total_hours / HOURS_IN_ONE_DAY
+            days_later += int(hours_left)
+
+        temp_hours = total_hours
+        while True:
+            if temp_hours < HOURS_IN_HALF_DAY:
+                break
+            if period == "am":
+                period = "pm"
+            else:
+                period = "am"
+            temp_hours -= HOURS_IN_HALF_DAY
+
+    remaining_hours = int(total_hours % HOURS_IN_HALF_DAY) or hours + 1
+    remaining_mins = int(total_mins % 60)
+
+    results = f"{remaining_hours}:{remaining_mins:02} {period.upper()}"
+    if day:  # add the day of the week
+        day = day.strip().lower()
+        selected_day = int((WEEK_DAYS.index(day) + days_later) % 7)
+        current_day = WEEK_DAYS[selected_day]
+        results += f", {current_day.title()} {get_days_later(days_later)}"
+
+    else:
+        results = " ".join((results, get_days_later(days_later)))
+
+    return results.strip()
